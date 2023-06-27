@@ -23,11 +23,11 @@ const Label = styled("label")`
 
 const InputWrapper = styled("div")(
   ({ theme }) => `
-  width: 300px;
+  width: 100%;
+  min-height: 65px;
   border: 1px solid ${theme.palette.mode === "dark" ? "#434343" : "#d9d9d9"};
   background-color: ${theme.palette.mode === "dark" ? "#141414" : "#fff"};
   border-radius: 4px;
-  padding: 1px;
   display: flex;
   flex-wrap: wrap;
 
@@ -158,7 +158,7 @@ const Listbox = styled("ul")(
 `
 );
 
-export default function DropDownCustomize({ onChangeTags }) {
+export default function DropDownCustomize({ onChangeTags, defaultValue }) {
   const {
     getRootProps,
     getInputLabelProps,
@@ -172,10 +172,11 @@ export default function DropDownCustomize({ onChangeTags }) {
     setAnchorEl,
   } = useAutocomplete({
     id: "customized-hook-demo",
-    defaultValue: [top100Films[1]],
+    defaultValue: defaultValue || [tags[0]],
     multiple: true,
-    options: top100Films,
+    options: tags,
     getOptionLabel: (option) => option.title,
+    isOptionEqualToValue: (option, value) => option.title === value.title,
   });
 
   React.useEffect(() => {
@@ -211,8 +212,7 @@ export default function DropDownCustomize({ onChangeTags }) {
   );
 }
 
-// Top 100 films as rated by IMDb users. http://www.imdb.com/chart/top
-const top100Films = [
+const tags = [
   { title: "Meetings" },
   { title: "UI Design" },
   { title: "Development" },

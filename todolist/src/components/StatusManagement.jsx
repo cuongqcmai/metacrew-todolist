@@ -5,12 +5,14 @@ import {
   ListItem,
   ListItemIcon,
   ListItemText,
-  Menu,
-  MenuItem,
   Stack,
 } from "@mui/material";
 import SvgIcon from "@mui/material/SvgIcon";
-import { useMemo } from "react";
+import * as React from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useDrop } from "react-dnd";
+import { useAppContext } from "../context/AppProvider";
+import AddNewTaskModal from "./AddNewTaskModal";
 import Task from "./Task";
 
 function StatusIcon(props) {
@@ -22,6 +24,16 @@ function StatusIcon(props) {
 }
 
 export default function StatusManagement({ type }) {
+  const {
+    listTodo,
+    data,
+    listOverdue,
+    listCompleted,
+    listInProgress,
+    updateData,
+  } = useAppContext();
+  const [listTask, setListTask] = useState();
+  const [openModal, setOpenModal] = React.useState(false);
   const colorStatusIcon = useMemo(() => {
     switch (type) {
       case "Todo": {
@@ -41,8 +53,51 @@ export default function StatusManagement({ type }) {
     }
   }, [type]);
 
+  const [{ isOver }, drop] = useDrop(() => ({
+    accept: "task",
+    drop: (item) => addTaskToList(item?.id),
+    collect: (monitor) => ({
+      isOver: !!monitor.isOver(),
+    }),
+  }));
+
+  const addTaskToList = (id) => {
+    updateData((prev) => {
+      const aTask = prev.map((t) => {
+        if (t.id === id) {
+          return { ...t, type: type };
+        }
+        return t;
+      });
+      return aTask;
+    });
+  };
+
+  useEffect(() => {
+    switch (type) {
+      case "Todo": {
+        setListTask(listTodo);
+        break;
+      }
+      case "In Progress": {
+        setListTask(listInProgress);
+        break;
+      }
+      case "Completed": {
+        setListTask(listCompleted);
+        break;
+      }
+      case "Overdue": {
+        setListTask(listOverdue);
+        break;
+      }
+      default:
+        return "";
+    }
+  }, [data]);
+
   return (
-    <Stack spacing={1} padding={1}>
+    <Stack ref={drop} spacing={1} padding={1}>
       <ListItem
         sx={{
           backgroundColor: "#fff",
@@ -75,13 +130,27 @@ export default function StatusManagement({ type }) {
           }
           sx={{ minWidth: 200, py: 1 }}
         />
-        <ListItemIcon sx={{ minWidth: "auto" }}>
+        <ListItemIcon
+          sx={{ minWidth: "auto" }}
+          onClick={() => setOpenModal(true)}
+        >
           <AddBoxRoundedIcon sx={{ cursor: "pointer" }} />
         </ListItemIcon>
       </ListItem>
-      <Task />
-      <Task />
-      <Task />
+      {listTask && listTask.map((item) => <Task key={item?.id} item={item} />)}
+      {isOver ? (
+        <Box
+          width={254}
+          height={164}
+          border={"1px dotted #000"}
+          borderRadius={4}
+        ></Box>
+      ) : null}
+      <AddNewTaskModal
+        type={type}
+        openModal={openModal}
+        closeModal={() => setOpenModal(false)}
+      />
     </Stack>
   );
 }

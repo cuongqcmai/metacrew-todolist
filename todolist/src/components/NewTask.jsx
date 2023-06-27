@@ -9,11 +9,17 @@ import {
 import ListItemText from "@mui/material/ListItemText";
 import AddNewTaskModal from "./AddNewTaskModal";
 import * as React from "react";
+import ChipCustomize from "./ChipCustomize";
+import DropDownCustomize from "./DropDownCustomize";
 
 export default function NewTask() {
   const [openModal, setOpenModal] = React.useState(false);
   return (
-    <Stack spacing={1} p={3} pb={0}>
+    <Stack
+      spacing={1}
+      p={3}
+      sx={{ position: "sticky", top: 0, zIndex: 9, backgroundColor: "#fff" }}
+    >
       <ListItem disablePadding color="gray">
         <ListItemText
           primary="Priority"
@@ -37,22 +43,10 @@ export default function NewTask() {
           sx={{ flex: "none", minWidth: 200 }}
         />
         <Stack direction={"row"} spacing={1}>
-          <Chip
-            label="Meetings"
-            sx={{ borderRadius: 2, backgroundColor: "#ffe0b2" }}
-          />
-          <Chip
-            label="UI Design"
-            sx={{ borderRadius: 2, backgroundColor: "#e6ee9c" }}
-          />
-          <Chip
-            label="Development"
-            sx={{ borderRadius: 2, backgroundColor: "#b2ebf2" }}
-          />
-          <Chip
-            label="UX Research"
-            sx={{ borderRadius: 2, backgroundColor: "#a7ffeb" }}
-          />
+          <ChipCustomize title="Meetings" />
+          <ChipCustomize title="UI Design" />
+          <ChipCustomize title="Development" />
+          <ChipCustomize title="UX Research" />
         </Stack>
       </ListItem>
       <ListItem disablePadding>

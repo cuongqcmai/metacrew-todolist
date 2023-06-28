@@ -65,15 +65,16 @@ export default function StatusManagement({ type }) {
 
   const addTaskToList = (id) => {
     updateData((prev) => {
-      const aTask = prev.map((t) => {
-        if (t.id === id) {
+      const newData = prev.map((t) => {
+        if (t.id === id && t.type !== type) {
+          notifySuccess("Drop update success");
           return { ...t, type: type };
         }
         return t;
       });
-      return aTask;
+
+      return newData;
     });
-    notifySuccess("Drop update success");
   };
 
   useEffect(() => {

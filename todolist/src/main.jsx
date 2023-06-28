@@ -4,11 +4,15 @@ import App from "./App.jsx";
 import "./index.css";
 import { HTML5Backend } from "react-dnd-html5-backend";
 import { DndProvider } from "react-dnd";
+import { AppProvider } from "./context/AppProvider.jsx";
+import { ToastContainer } from "react-toastify";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
     <DndProvider backend={HTML5Backend}>
-      <App />
+      <AppProvider>
+        <App />
+      </AppProvider>
     </DndProvider>
   </React.StrictMode>
 );

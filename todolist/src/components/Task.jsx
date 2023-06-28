@@ -9,10 +9,12 @@ import { OPTION_PRIORITY } from "../lib/constants";
 import ChipCustomize from "./ChipCustomize";
 import { useAppContext } from "../context/AppProvider";
 import AddNewTaskModal from "./AddNewTaskModal";
+import ConfirmDeleteTaskModal from "./ConfirmDeleteTaskModal";
 
 export default function Task({ item }) {
   const [anchorEl, setAnchorEl] = React.useState(null);
   const [openModal, setOpenModal] = React.useState(false);
+  const [isModalConfirm, setIsModalConfirm] = React.useState(false);
   const open = Boolean(anchorEl);
   const handleClick = (event) => {
     setAnchorEl(event.currentTarget);
@@ -21,18 +23,17 @@ export default function Task({ item }) {
     setAnchorEl(null);
   };
 
-  const { updateData, deleteTaskWithId } = useAppContext();
+  const { updateData, deleteTaskWithId, data } = useAppContext();
 
   const handleChange = (event) => {
-    updateData((prev) => {
-      const aTask = prev.map((t) => {
-        if (t.id === item?.id) {
-          return { ...t, priority: event.target.value };
-        }
-        return t;
-      });
-      return aTask;
+    const dataClone = [...data];
+    const dataUpdate = dataClone.map((t) => {
+      if (t.id === item?.id) {
+        return { ...t, priority: event.target.value };
+      }
+      return t;
     });
+    updateData(dataUpdate);
   };
 
   const [{ isDragging }, drag] = useDrag(() => ({
@@ -63,18 +64,28 @@ export default function Task({ item }) {
   }, [item?.type]);
 
   const deleteTask = () => {
+    setIsModalConfirm(true);
+    handleClose();
+  };
+
+  const confirmDelete = () => {
     deleteTaskWithId(item?.id);
   };
 
   const editTask = () => {
     setOpenModal(true);
   };
+
+  const handleCloseModal = () => {
+    setOpenModal(false);
+    handleClose();
+  };
+
   return (
     <Card
       ref={drag}
       sx={{
         width: "100%",
-        maxWidth: 256,
         borderRadius: 4,
         position: "relative",
         backgroundColor: colorTask,
@@ -119,7 +130,7 @@ export default function Task({ item }) {
           border: "none !important",
         }}
         onChange={handleChange}
-        value={item?.priority || "Low"}
+        value={item?.priority || OPTION_PRIORITY[0]}
       >
         {OPTION_PRIORITY.map((p, index) => (
           <MenuItem
@@ -154,7 +165,6 @@ export default function Task({ item }) {
         </Box>
       ) : null}
       <Menu
-        id="basic-menu"
         anchorEl={anchorEl}
         open={open}
         onClose={handleClose}
@@ -169,8 +179,13 @@ export default function Task({ item }) {
       </Menu>
       <AddNewTaskModal
         openModal={openModal}
-        closeModal={() => setOpenModal(false)}
+        closeModal={handleCloseModal}
         item={item}
+      />
+      <ConfirmDeleteTaskModal
+        open={isModalConfirm}
+        handleClose={() => setIsModalConfirm(false)}
+        confirmDelete={confirmDelete}
       />
     </Card>
   );

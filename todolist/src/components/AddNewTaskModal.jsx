@@ -19,15 +19,17 @@ import * as yup from "yup";
 import { useAppContext } from "../context/AppProvider";
 import { OPTION_PRIORITY, OPTION_STATUS } from "../lib/constants";
 import DropDownCustomize from "./DropDownCustomize";
+import useResponsive from "../hook.js/useResponsive";
 
 export default function AddNewTaskModal({
   openModal = false,
   closeModal,
   type = "",
-  item,
+  item = null,
 }) {
   const handleClose = () => closeModal();
   const { addTask, updateTask } = useAppContext();
+  const { isMobile } = useResponsive();
   const style = {
     position: "absolute",
     top: "50%",
@@ -52,7 +54,6 @@ export default function AddNewTaskModal({
   const addNewTask = (value) => {
     value.id = uuidv4();
     addTask(value);
-    reset();
     handleClose();
   };
 
@@ -61,14 +62,13 @@ export default function AddNewTaskModal({
     formState: { errors },
     handleSubmit,
     setValue,
-    reset,
   } = useForm({
     defaultValues: {
       id: item?.id || null,
       title: item?.title || "",
       description: item?.description || "",
       type: item?.type || "",
-      priority: item?.type || "",
+      priority: item?.priority || "",
       tag: item?.tag || [],
     },
     resolver: yupResolver(schemaCreateTask),
@@ -81,11 +81,10 @@ export default function AddNewTaskModal({
   const handleSubmitForm = (value) => {
     if (item) {
       updateTask(value);
-      reset();
       handleClose();
-      return;
+    } else {
+      addNewTask(value);
     }
-    addNewTask(value);
   };
 
   React.useEffect(() => {
@@ -93,19 +92,33 @@ export default function AddNewTaskModal({
       setValue("type", OPTION_STATUS[0]);
     }
     setValue("type", type);
-  }, [type]);
+  }, []);
 
   React.useEffect(() => {
-    setValue("priority", OPTION_PRIORITY[0]);
-  }, []);
+    setValue("priority", item?.priority || OPTION_PRIORITY[0]);
+  }, [item?.priority]);
   return (
     <>
-      <Modal open={openModal} onClose={handleClose}>
+      <Modal
+        sx={{
+          ">.MuiBox-root": {
+            width: isMobile ? "100%" : 400,
+            bottom: isMobile ? 0 : "auto",
+            left: isMobile ? 0 : "50%",
+            top: isMobile ? "auto" : "50%",
+            transform: isMobile ? "none" : "translate(-50%, -50%)",
+            boxSizing: isMobile ? "border-box" : "initial",
+          },
+        }}
+        open={openModal}
+        onClose={handleClose}
+      >
         <Box
           sx={{
             ...style,
             borderRadius: 2,
             ":focus-visible": { outline: "none" },
+            padding: isMobile ? 2 : 2,
           }}
         >
           <Typography variant="h6" component="h2" mb={2}>
@@ -115,16 +128,16 @@ export default function AddNewTaskModal({
             <Stack spacing={2} sx={{ ".MuiFilledInput-input": { pt: 3 } }}>
               <TextField
                 label="Title"
-                required
                 fullWidth
                 type="string"
+                defaultValue={item?.title}
                 {...register("title")}
                 error={!!errors.title}
                 helperText={errors.title?.message}
               />
               <TextField
+                defaultValue={item?.description}
                 label="Description"
-                required
                 fullWidth
                 type="string"
                 {...register("description")}
@@ -137,7 +150,7 @@ export default function AddNewTaskModal({
                 justifyContent={"space-between"}
               >
                 <Autocomplete
-                  sx={{ minWidth: 180 }}
+                  sx={{ minWidth: isMobile ? 160 : 180 }}
                   options={OPTION_STATUS}
                   onChange={(e) => setValue("type", e.target.value)}
                   defaultValue={item?.type || type || OPTION_STATUS[0]}
@@ -160,7 +173,7 @@ export default function AddNewTaskModal({
                   <Select
                     sx={{ minWidth: 120 }}
                     {...register("priority")}
-                    defaultValue={item?.priority || "Low"}
+                    defaultValue={item?.priority || OPTION_PRIORITY[0]}
                   >
                     {OPTION_PRIORITY.map((item, index) => (
                       <MenuItem key={index} value={item}>
@@ -176,7 +189,13 @@ export default function AddNewTaskModal({
                 onChangeTags={onChangeTags}
               />
 
-              <Button variant="contained" size="medium" fullWidth type="submit">
+              <Button
+                variant="contained"
+                size="medium"
+                fullWidth
+                type="submit"
+                sx={{ textTransform: "none" }}
+              >
                 {item ? "Update" : "Add"}
               </Button>
             </Stack>

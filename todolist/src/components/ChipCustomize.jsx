@@ -27,8 +27,9 @@ export default function ChipCustomize({ title, isSmallSize }) {
         sx={{
           borderRadius: 2,
           backgroundColor: colorStatusIcon,
-          mr: isSmallSize ? 0.5 : 0,
+          mr: 0.5,
           mb: isSmallSize ? 0.5 : 0,
+          ml: "0 !important",
           color: "gray",
           fontSize: "12px",
         }}

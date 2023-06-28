@@ -31,6 +31,8 @@ export default function StatusManagement({ type }) {
     listCompleted,
     listInProgress,
     updateData,
+    filterFormData,
+    notifySuccess,
   } = useAppContext();
   const [listTask, setListTask] = useState();
   const [openModal, setOpenModal] = React.useState(false);
@@ -71,6 +73,7 @@ export default function StatusManagement({ type }) {
       });
       return aTask;
     });
+    notifySuccess("Drop update success");
   };
 
   useEffect(() => {
@@ -94,7 +97,7 @@ export default function StatusManagement({ type }) {
       default:
         return "";
     }
-  }, [data]);
+  }, [data, filterFormData]);
 
   return (
     <Stack ref={drop} spacing={1} padding={1}>
@@ -128,7 +131,7 @@ export default function StatusManagement({ type }) {
               ) : null}
             </>
           }
-          sx={{ minWidth: 200, py: 1 }}
+          sx={{ py: 1 }}
         />
         <ListItemIcon
           sx={{ minWidth: "auto" }}

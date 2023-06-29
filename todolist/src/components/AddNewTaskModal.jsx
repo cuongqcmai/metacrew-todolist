@@ -96,7 +96,6 @@ export default function AddNewTaskModal({
     }
     setValue("type", type);
   }, []);
-  console.log("item", getValues("id"));
 
   React.useEffect(() => {
     setValue("priority", item?.priority || OPTION_PRIORITY[0]);

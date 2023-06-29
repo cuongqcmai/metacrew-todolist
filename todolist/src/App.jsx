@@ -7,37 +7,45 @@ import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import FilterAndSearch from "./components/FilterAndSearch";
 import TabStatus from "./components/TabStatus";
+import backgroundImage from "./assets/images/background-image.avif";
 
 function App() {
   return (
     <Stack
-      direction="column"
-      spacing={3}
       sx={{
-        backgroundColor: "#fff",
-        height: "100vh",
-        width: "100%",
-        maxWidth: 1280,
-        margin: "auto",
+        backgroundImage: `url(${backgroundImage})`,
+        backgroundSize: "cover",
       }}
     >
-      <NewTask />
-
-      <Box
-        sx={{
-          backgroundColor: "#EEE",
-          mt: "0 !important",
-          overflow: "auto",
-        }}
-        display={"flex"}
-        flexDirection={"column"}
-        p={2}
-        height={"100%"}
-      >
-        <FilterAndSearch />
-        <TabStatus />
-      </Box>
       <ToastContainer />
+      <Stack
+        direction="column"
+        spacing={3}
+        sx={{
+          backgroundColor: "#fff",
+          height: "100vh",
+          width: "100%",
+          maxWidth: 1280,
+          margin: "auto",
+        }}
+      >
+        <NewTask />
+
+        <Box
+          sx={{
+            backgroundColor: "#EEE",
+            mt: "0 !important",
+            overflow: "auto",
+          }}
+          display={"flex"}
+          flexDirection={"column"}
+          p={2}
+          height={"100%"}
+        >
+          <FilterAndSearch />
+          <TabStatus />
+        </Box>
+      </Stack>
     </Stack>
   );
 }

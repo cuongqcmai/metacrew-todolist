@@ -54,6 +54,7 @@ export default function AddNewTaskModal({
   const addNewTask = (value) => {
     value.id = uuidv4();
     addTask(value);
+    reset();
     handleClose();
   };
 
@@ -62,13 +63,15 @@ export default function AddNewTaskModal({
     formState: { errors },
     handleSubmit,
     setValue,
+    getValues,
+    reset,
   } = useForm({
     defaultValues: {
       id: item?.id || null,
       title: item?.title || "",
       description: item?.description || "",
-      type: item?.type || "",
-      priority: item?.priority || "",
+      type: item?.type || OPTION_STATUS[0],
+      priority: item?.priority || OPTION_PRIORITY[0],
       tag: item?.tag || [],
     },
     resolver: yupResolver(schemaCreateTask),
@@ -93,6 +96,7 @@ export default function AddNewTaskModal({
     }
     setValue("type", type);
   }, []);
+  console.log("item", getValues("id"));
 
   React.useEffect(() => {
     setValue("priority", item?.priority || OPTION_PRIORITY[0]);
@@ -152,7 +156,7 @@ export default function AddNewTaskModal({
                 <Autocomplete
                   sx={{ minWidth: isMobile ? 160 : 180 }}
                   options={OPTION_STATUS}
-                  onChange={(e) => setValue("type", e.target.value)}
+                  // onChange={(e) => setValue("type", e.target.value)}
                   defaultValue={item?.type || type || OPTION_STATUS[0]}
                   {...register("type")}
                   renderInput={(params) => (

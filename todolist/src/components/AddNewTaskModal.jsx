@@ -125,7 +125,7 @@ export default function AddNewTaskModal({
           }}
         >
           <Typography variant="h6" component="h2" mb={2}>
-            Add new task
+            {item ? "Update task" : "Add new task"}
           </Typography>
           <form onSubmit={handleSubmit(handleSubmitForm)}>
             <Stack spacing={2} sx={{ ".MuiFilledInput-input": { pt: 3 } }}>

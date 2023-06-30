@@ -14,6 +14,7 @@ import { useDrop } from "react-dnd";
 import { useAppContext } from "../context/AppProvider";
 import AddNewTaskModal from "./AddNewTaskModal";
 import Task from "./Task";
+import update from "immutability-helper";
 
 function StatusIcon(props) {
   return (
@@ -57,7 +58,9 @@ export default function StatusManagement({ type }) {
 
   const [{ isOver }, drop] = useDrop(() => ({
     accept: "task",
-    drop: (item) => addTaskToList(item?.id),
+    drop: (item) => {
+      addTaskToList(item?.id);
+    },
     collect: (monitor) => ({
       isOver: !!monitor.isOver(),
     }),
@@ -76,7 +79,17 @@ export default function StatusManagement({ type }) {
       return newData;
     });
   };
-
+  const moveTask = React.useCallback((dragIndex, hoverIndex) => {
+    console.log("moveTask", dragIndex, hoverIndex);
+    updateData((prevData) =>
+      update(prevData, {
+        $splice: [
+          [dragIndex, 1],
+          [hoverIndex, 0, prevData[dragIndex]],
+        ],
+      })
+    );
+  }, []);
   useEffect(() => {
     switch (type) {
       case "Todo": {
@@ -100,8 +113,20 @@ export default function StatusManagement({ type }) {
     }
   }, [data, filterFormData]);
 
+  const renderCard = React.useCallback((item, index) => {
+    return (
+      <Task
+        key={item.id}
+        index={index}
+        id={item.id}
+        item={item}
+        moveTask={moveTask}
+      />
+    );
+  }, []);
+
   return (
-    <Stack ref={drop} spacing={1} padding={1}>
+    <Stack ref={drop} spacing={1} padding={1} minHeight={150}>
       <ListItem
         sx={{
           backgroundColor: "#fff",
@@ -141,7 +166,8 @@ export default function StatusManagement({ type }) {
           <AddBoxRoundedIcon sx={{ cursor: "pointer" }} />
         </ListItemIcon>
       </ListItem>
-      {listTask && listTask.map((item) => <Task key={item?.id} item={item} />)}
+      {listTask && listTask.map((item, index) => renderCard(item, index))}
+
       {isOver ? (
         <Box
           width={254}

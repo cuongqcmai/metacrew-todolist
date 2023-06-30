@@ -4,18 +4,19 @@ import Card from "@mui/material/Card";
 import CardContent from "@mui/material/CardContent";
 import Typography from "@mui/material/Typography";
 import * as React from "react";
-import { useDrag } from "react-dnd";
+import { useDrag, useDrop } from "react-dnd";
 import { OPTION_PRIORITY } from "../lib/constants";
 import ChipCustomize from "./ChipCustomize";
 import { useAppContext } from "../context/AppProvider";
 import AddNewTaskModal from "./AddNewTaskModal";
 import ConfirmDeleteTaskModal from "./ConfirmDeleteTaskModal";
 
-export default function Task({ item }) {
+export default function Task({ item, index, moveTask }) {
   const [anchorEl, setAnchorEl] = React.useState(null);
   const [openModal, setOpenModal] = React.useState(false);
   const [isModalConfirm, setIsModalConfirm] = React.useState(false);
   const open = Boolean(anchorEl);
+  const ref = React.useRef(null);
   const handleClick = (event) => {
     setAnchorEl(event.currentTarget);
   };
@@ -38,11 +39,47 @@ export default function Task({ item }) {
 
   const [{ isDragging }, drag] = useDrag(() => ({
     type: "task",
-    item: { id: item?.id },
+    item: { id: item?.id, index: index },
     collect: (monitor) => ({
       isDragging: !!monitor.isDragging(),
     }),
   }));
+
+  const [{ handlerId }, drop] = useDrop({
+    accept: "task",
+    collect(monitor) {
+      return {
+        handlerId: monitor.getHandlerId(),
+      };
+    },
+    hover(item, monitor) {
+      if (!ref.current) {
+        return;
+      }
+      const dragIndex = item.index;
+      const hoverIndex = index;
+      if (dragIndex === hoverIndex) {
+        return;
+      }
+      const hoverBoundingRect = ref.current?.getBoundingClientRect();
+
+      const hoverMiddleY =
+        (hoverBoundingRect.bottom - hoverBoundingRect.top) / 2;
+      const clientOffset = monitor.getClientOffset();
+
+      const hoverClientY = clientOffset.y - hoverBoundingRect.top;
+
+      if (dragIndex < hoverIndex && hoverClientY < hoverMiddleY) {
+        return;
+      }
+      if (dragIndex > hoverIndex && hoverClientY > hoverMiddleY) {
+        return;
+      }
+      moveTask(dragIndex, hoverIndex);
+
+      item.index = hoverIndex;
+    },
+  });
 
   const colorTask = React.useMemo(() => {
     switch (item?.type) {
@@ -81,19 +118,22 @@ export default function Task({ item }) {
     handleClose();
   };
 
+  drag(drop(ref));
+
   return (
     <Card
-      ref={drag}
+      ref={ref}
       sx={{
         width: "100%",
         borderRadius: 4,
         position: "relative",
         backgroundColor: colorTask,
         color: "#fff",
-        opacity: isDragging ? 0.3 : 1,
+        opacity: isDragging ? 0 : 1,
         overflow: "hidden",
         zIndex: 8,
       }}
+      data-handler-id={handlerId}
     >
       <ListItemButton
         sx={{

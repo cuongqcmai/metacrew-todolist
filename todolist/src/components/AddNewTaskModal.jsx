@@ -1,8 +1,6 @@
 import { yupResolver } from "@hookform/resolvers/yup";
 import {
-  Autocomplete,
   Button,
-  FormControl,
   InputLabel,
   MenuItem,
   Select,
@@ -17,14 +15,14 @@ import { useForm } from "react-hook-form";
 import { v4 as uuidv4 } from "uuid";
 import * as yup from "yup";
 import { useAppContext } from "../context/AppProvider";
+import useResponsive from "../hook.js/useResponsive";
 import { OPTION_PRIORITY, OPTION_STATUS } from "../lib/constants";
 import DropDownCustomize from "./DropDownCustomize";
-import useResponsive from "../hook.js/useResponsive";
 
 export default function AddNewTaskModal({
   openModal = false,
   closeModal,
-  type = "",
+  type,
   item = null,
 }) {
   const handleClose = () => closeModal();
@@ -70,7 +68,7 @@ export default function AddNewTaskModal({
       id: item?.id || null,
       title: item?.title || "",
       description: item?.description || "",
-      type: item?.type || OPTION_STATUS[0],
+      type: item?.type || type || OPTION_STATUS[0],
       priority: item?.priority || OPTION_PRIORITY[0],
       tag: item?.tag || [],
     },
@@ -89,13 +87,6 @@ export default function AddNewTaskModal({
       addNewTask(value);
     }
   };
-
-  React.useEffect(() => {
-    if (!type) {
-      setValue("type", OPTION_STATUS[0]);
-    }
-    setValue("type", type);
-  }, []);
 
   React.useEffect(() => {
     setValue("priority", item?.priority || OPTION_PRIORITY[0]);
@@ -148,27 +139,27 @@ export default function AddNewTaskModal({
                 helperText={errors.description?.message}
               />
               <Box
-                flexDirection={"row"}
+                sx={{ width: "auto" }}
                 display={"flex"}
-                justifyContent={"space-between"}
+                alignItems={"center"}
               >
-                <Autocomplete
-                  sx={{ minWidth: isMobile ? 160 : 180 }}
-                  options={OPTION_STATUS}
-                  // onChange={(e) => setValue("type", e.target.value)}
-                  defaultValue={item?.type || type || OPTION_STATUS[0]}
+                <InputLabel sx={{ mr: 0.5 }}>Status</InputLabel>
+
+                <Select
+                  sx={{ minWidth: isMobile ? 100 : 160 }}
                   {...register("type")}
-                  renderInput={(params) => (
-                    <TextField
-                      {...params}
-                      {...register("type")}
-                      label="Status"
-                    />
-                  )}
-                />
+                  defaultValue={item?.type || type || OPTION_STATUS[0]}
+                  error={!!errors.type}
+                >
+                  {OPTION_STATUS.map((item, index) => (
+                    <MenuItem key={index} value={item}>
+                      {item}
+                    </MenuItem>
+                  ))}
+                </Select>
 
                 <Box
-                  sx={{ width: "auto" }}
+                  sx={{ width: "auto", ml: 1 }}
                   display={"flex"}
                   alignItems={"center"}
                 >

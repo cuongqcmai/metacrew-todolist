@@ -5,6 +5,7 @@ import { autocompleteClasses } from "@mui/material/Autocomplete";
 import { styled } from "@mui/material/styles";
 import PropTypes from "prop-types";
 import * as React from "react";
+import useResponsive from "../hook.js/useResponsive";
 
 const Root = styled("div")(
   ({ theme }) => `
@@ -12,6 +13,7 @@ const Root = styled("div")(
     theme.palette.mode === "dark" ? "rgba(255,255,255,0.65)" : "rgba(0,0,0,.85)"
   };
   font-size: 14px;
+  position: relative;
 `
 );
 
@@ -113,7 +115,7 @@ const StyledTag = styled(Tag)(
 
 const Listbox = styled("ul")(
   ({ theme }) => `
-  width: 300px;
+  width: 100%;
   margin: 2px 0 0;
   padding: 0;
   position: absolute;
@@ -179,6 +181,8 @@ export default function DropDownCustomize({ onChangeTags, defaultValue }) {
     isOptionEqualToValue: (option, value) => option.title === value.title,
   });
 
+  const { isMobile } = useResponsive();
+
   React.useEffect(() => {
     if (onChangeTags) onChangeTags(value);
   }, [value]);
@@ -199,7 +203,7 @@ export default function DropDownCustomize({ onChangeTags, defaultValue }) {
         </InputWrapper>
       </div>
       {groupedOptions.length > 0 ? (
-        <Listbox {...getListboxProps()}>
+        <Listbox {...getListboxProps()} sx={{ bottom: isMobile ? 68 : "auto" }}>
           {groupedOptions.map((option, index) => (
             <li key={index} {...getOptionProps({ option, index })}>
               <span>{option.title}</span>

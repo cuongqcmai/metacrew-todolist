@@ -81,7 +81,7 @@ export default function AddNewTaskModal({
 
   const handleSubmitForm = (value) => {
     if (item) {
-      updateTask(value);
+      updateTask(value, item.type);
       handleClose();
     } else {
       addNewTask(value);

@@ -15,6 +15,7 @@ import { useAppContext } from "../context/AppProvider";
 import AddNewTaskModal from "./AddNewTaskModal";
 import Task from "./Task";
 import update from "immutability-helper";
+import { typeToListType } from "../lib/constants";
 
 function StatusIcon(props) {
   return (
@@ -59,36 +60,69 @@ export default function StatusManagement({ type }) {
   const [{ isOver }, drop] = useDrop(() => ({
     accept: "task",
     drop: (item) => {
-      addTaskToList(item?.id);
+      if (item.item.type === type) return;
+      addTaskToList(item.item, type);
     },
     collect: (monitor) => ({
       isOver: !!monitor.isOver(),
     }),
   }));
 
-  const addTaskToList = (id) => {
-    updateData((prev) => {
-      const newData = prev.map((t) => {
-        if (t.id === id && t.type !== type) {
-          notifySuccess("Drop update success");
-          return { ...t, type: type };
-        }
-        return t;
-      });
+  const addTaskToList = (item, typeDrop) => {
+    const itemDropType = typeToListType(typeDrop);
+    const itemType = typeToListType(item.type);
 
-      return newData;
+    updateData((prevData) => {
+      const existId =
+        prevData[`${itemDropType}`].length > 0 &&
+        prevData[`${itemDropType}`].filter((i) => i?.id === item.id);
+      if (!existId || existId.length < 1) {
+        prevData[`${itemDropType}`].push({ ...item, type: typeDrop });
+      }
+      const listRemoved = removeTaskById(prevData[`${itemType}`], item.id);
+      prevData[`${itemType}`] =
+        listRemoved.length > 0 && listRemoved[0] ? listRemoved : [];
+      return { ...prevData };
     });
   };
-  const moveTask = React.useCallback((dragIndex, hoverIndex) => {
-    console.log("moveTask", dragIndex, hoverIndex);
-    updateData((prevData) =>
-      update(prevData, {
-        $splice: [
-          [dragIndex, 1],
-          [hoverIndex, 0, prevData[dragIndex]],
-        ],
-      })
-    );
+
+  const removeTaskById = (arr, id) => {
+    const arrCopy = Array.from(arr);
+
+    const taskWithIdIndex = arrCopy.findIndex((obj) => obj?.id === id);
+    arrCopy.splice(taskWithIdIndex, 1);
+    return arrCopy;
+  };
+  const moveTask = React.useCallback((dragIndex, hoverIndex, type) => {
+    let itemType = "";
+    switch (type) {
+      case "Todo": {
+        itemType = "listTodo";
+        break;
+      }
+      case "In Progress": {
+        itemType = "listInProgress";
+        break;
+      }
+      case "Completed": {
+        itemType = "listCompleted";
+        break;
+      }
+      case "Overdue": {
+        itemType = "listOverdue";
+        break;
+      }
+    }
+    updateData((prevData) => {
+      const updatedList = [...prevData[itemType]];
+      const [removedItem] = updatedList.splice(dragIndex, 1);
+      updatedList.splice(hoverIndex, 0, removedItem);
+
+      return {
+        ...prevData,
+        [itemType]: updatedList,
+      };
+    });
   }, []);
   useEffect(() => {
     switch (type) {

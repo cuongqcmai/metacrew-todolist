@@ -1,15 +1,19 @@
-import React, { useContext, useEffect, useMemo } from "react";
-import { STORAGE_LIST_TASK } from "../lib/constants";
-import { local } from "../lib/storage";
-import { NearMe } from "@mui/icons-material";
+import React, { useContext, useEffect } from "react";
 import { toast } from "react-toastify";
+import { STORAGE_LIST_TASK, typeToListType } from "../lib/constants";
+import { local } from "../lib/storage";
 
 const AppContext = React.createContext();
 
 export const useAppContext = () => useContext(AppContext);
 
 function AppProvider({ children }) {
-  const [data, setData] = React.useState([]);
+  const [data, setData] = React.useState({
+    listTodo: [],
+    listInProgress: [],
+    listCompleted: [],
+    listOverdue: [],
+  });
   const [filterFormData, setFilterFormData] = React.useState({
     type: "all",
     searchName: "",
@@ -21,17 +25,15 @@ function AppProvider({ children }) {
       : filterFormData.searchName.trim();
 
   const filterByData = (type) =>
-    data.filter(
-      (item) => item.type === type && item.title.trim().includes(textSearch)
-    );
+    data[`${type}`].filter((item) => item?.title.trim().includes(textSearch));
   const listTask = JSON.parse(local.getItem(STORAGE_LIST_TASK));
-  const listTodo = filterByData("Todo");
+  const listTodo = filterByData("listTodo");
 
-  const listInProgress = filterByData("In Progress");
+  const listInProgress = filterByData("listInProgress");
 
-  const listCompleted = filterByData("Completed");
+  const listCompleted = filterByData("listCompleted");
 
-  const listOverdue = filterByData("Overdue");
+  const listOverdue = filterByData("listOverdue");
 
   const updateData = (newData) => {
     setData(newData);
@@ -61,38 +63,66 @@ function AppProvider({ children }) {
     });
 
   const addTask = (value) => {
-    setData((current) => [...current, value]);
+    const newData = { ...data };
+    switch (value.type) {
+      case "Todo": {
+        newData["listTodo"].push(value);
+        break;
+      }
+      case "In Progress": {
+        newData["listInProgress"].push(value);
+        break;
+      }
+      case "Completed": {
+        newData["listCompleted"].push(value);
+        break;
+      }
+      case "Overdue": {
+        newData["listOverdue"].push(value);
+        break;
+      }
+      default:
+        return "";
+    }
+    setData(newData);
     notifySuccess("Add success");
   };
 
-  const deleteTaskWithId = (id) => {
-    const cloneData = [...data];
-    const index = cloneData.findIndex((t) => t.id === id);
+  const deleteTaskWithId = (id, type) => {
+    const itemType = typeToListType(type);
+    const cloneData = { ...data };
+    const index = cloneData[`${itemType}`].findIndex((t) => t.id === id);
     if (index === -1) return;
-    cloneData.splice(index, 1);
+    cloneData[`${itemType}`].splice(index, 1);
     updateData(cloneData);
     notifyDeleteSuccess("Delete success");
   };
 
-  const updateTask = (item) => {
-    const itemIndex = data.findIndex((t) => t.id === item.id);
-    if (itemIndex === -1) {
-      // Item not found
-      return;
-    }
-    const updatedItem = {
-      ...data[itemIndex],
-      title: item.title,
-      tag: item.tag,
-      description: item.description,
-      type: item.type,
-      priority: item.priority,
-    };
-    const updatedItems = [...data];
-    updatedItems[itemIndex] = updatedItem;
+  const updateTask = (item, oldType) => {
+    const itemOldType = typeToListType(oldType);
+    const itemNewType = typeToListType(item.type);
+    updateData((prevData) => {
+      const existId =
+        prevData[`${itemNewType}`].length > 0 &&
+        prevData[`${itemNewType}`].filter((i) => i?.id === item.id);
+      if (!existId || existId.length < 1) {
+        prevData[`${itemNewType}`].push(item);
+      }
+      const listRemoved = removeTaskById(prevData[`${itemOldType}`], item.id);
+      prevData[`${itemOldType}`] =
+        listRemoved.length > 0 && listRemoved[0] ? listRemoved : [];
+      return { ...prevData };
+    });
 
-    updateData(updatedItems);
     notifySuccess("Update success");
+  };
+
+  const removeTaskById = (arr, id) => {
+    const arrCopy = Array.from(arr);
+
+    const taskWithIdIndex = arrCopy.findIndex((obj) => obj?.id === id);
+    arrCopy.splice(taskWithIdIndex, 1);
+    return arrCopy;
   };
 
   const updateFilterFormData = (form) => {

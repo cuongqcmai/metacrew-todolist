@@ -5,7 +5,7 @@ import CardContent from "@mui/material/CardContent";
 import Typography from "@mui/material/Typography";
 import * as React from "react";
 import { useDrag, useDrop } from "react-dnd";
-import { OPTION_PRIORITY } from "../lib/constants";
+import { OPTION_PRIORITY, typeToListType } from "../lib/constants";
 import ChipCustomize from "./ChipCustomize";
 import { useAppContext } from "../context/AppProvider";
 import AddNewTaskModal from "./AddNewTaskModal";
@@ -27,23 +27,39 @@ export default function Task({ item, index, moveTask }) {
   const { updateData, deleteTaskWithId, data } = useAppContext();
 
   const handleChange = (event) => {
-    const dataClone = [...data];
-    const dataUpdate = dataClone.map((t) => {
-      if (t.id === item?.id) {
-        return { ...t, priority: event.target.value };
-      }
-      return t;
+    const itemType = typeToListType(item.type);
+    // const dataClone = { ...data };
+    // const dataListHandle = dataClone[`${itemType}`];
+    // const dataListHandleUpdate = dataListHandle.map((t) => {
+    //   if (t.id === item?.id) {
+    //     return { ...t, priority: event.target.value };
+    //   }
+    //   return t;
+    // });
+    // dataClone[`${itemType}`] = dataListHandleUpdate;
+    updateData((prevData) => {
+      const dataListHandle = prevData[`${itemType}`];
+      const dataListHandleUpdate = dataListHandle.map((t) => {
+        if (t.id === item?.id) {
+          return { ...t, priority: event.target.value };
+        }
+        return t;
+      });
+      prevData[`${itemType}`] = dataListHandleUpdate;
+      return { ...prevData };
     });
-    updateData(dataUpdate);
   };
 
-  const [{ isDragging }, drag] = useDrag(() => ({
-    type: "task",
-    item: { id: item?.id, index: index },
-    collect: (monitor) => ({
-      isDragging: !!monitor.isDragging(),
+  const [{ isDragging }, drag] = useDrag(
+    () => ({
+      type: "task",
+      item: { id: item?.id, index: index, item: item },
+      collect: (monitor) => ({
+        isDragging: !!monitor.isDragging(),
+      }),
     }),
-  }));
+    [item]
+  );
 
   const [{ handlerId }, drop] = useDrop({
     accept: "task",
@@ -75,7 +91,7 @@ export default function Task({ item, index, moveTask }) {
       if (dragIndex > hoverIndex && hoverClientY > hoverMiddleY) {
         return;
       }
-      moveTask(dragIndex, hoverIndex);
+      moveTask(dragIndex, hoverIndex, item.item.type);
 
       item.index = hoverIndex;
     },
@@ -106,7 +122,7 @@ export default function Task({ item, index, moveTask }) {
   };
 
   const confirmDelete = () => {
-    deleteTaskWithId(item?.id);
+    deleteTaskWithId(item?.id, item.type);
   };
 
   const editTask = () => {

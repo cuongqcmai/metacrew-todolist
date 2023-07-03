@@ -169,7 +169,12 @@ export default function StatusManagement({ type }) {
   }, []);
 
   return (
-    <Stack ref={drop} spacing={1} padding={1} minHeight={150}>
+    <Stack
+      ref={drop}
+      spacing={1}
+      padding={1}
+      minHeight={isMobile ? "auto" : 150}
+    >
       <ListItem
         sx={{
           backgroundColor: "#fff",

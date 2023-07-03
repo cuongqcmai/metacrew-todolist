@@ -11,6 +11,22 @@ import {
   TouchTransition,
   MouseTransition,
 } from "react-dnd-multi-backend";
+import Task from "./components/Task.jsx";
+import { usePreview } from "react-dnd-preview";
+
+export const MyPreview = ({ type }) => {
+  const preview = usePreview();
+  if (!preview.display) {
+    return null;
+  }
+  const { item } = preview;
+
+  return (
+    <>
+      <Task key={item.id} id={item.id} item={item.item} />
+    </>
+  );
+};
 
 export const HTML5toTouch = {
   backends: [

@@ -14,8 +14,10 @@ import { useDrop } from "react-dnd";
 import { useAppContext } from "../context/AppProvider";
 import AddNewTaskModal from "./AddNewTaskModal";
 import Task from "./Task";
-import update from "immutability-helper";
 import { typeToListType } from "../lib/constants";
+import useResponsive from "../hook.js/useResponsive";
+import { MyPreview } from "../main";
+import { usePreview } from "react-dnd-preview";
 
 function StatusIcon(props) {
   return (
@@ -38,6 +40,7 @@ export default function StatusManagement({ type }) {
   } = useAppContext();
   const [listTask, setListTask] = useState();
   const [openModal, setOpenModal] = React.useState(false);
+  const { isMobile } = useResponsive();
   const colorStatusIcon = useMemo(() => {
     switch (type) {
       case "Todo": {
@@ -60,13 +63,19 @@ export default function StatusManagement({ type }) {
   const [{ isOver }, drop] = useDrop(() => ({
     accept: "task",
     drop: (item) => {
-      if (item.item.type === type) return;
+      if (item.item.type === type) {
+        return;
+      }
       addTaskToList(item.item, type);
     },
     collect: (monitor) => ({
       isOver: !!monitor.isOver(),
     }),
   }));
+
+  const preview = usePreview();
+
+  const { item } = preview;
 
   const addTaskToList = (item, typeDrop) => {
     const itemDropType = typeToListType(typeDrop);
@@ -202,14 +211,15 @@ export default function StatusManagement({ type }) {
       </ListItem>
       {listTask && listTask.map((item, index) => renderCard(item, index))}
 
-      {isOver ? (
+      {isOver && !isMobile && item.item.type !== type ? (
         <Box
-          width={254}
+          width={"100%"}
           height={164}
           border={"1px dotted #000"}
           borderRadius={4}
         ></Box>
       ) : null}
+      {isOver && isMobile && item.item.type !== type ? <MyPreview /> : null}
       <AddNewTaskModal
         type={type}
         openModal={openModal}

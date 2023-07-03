@@ -91,7 +91,9 @@ export default function Task({ item, index, moveTask }) {
       if (dragIndex > hoverIndex && hoverClientY > hoverMiddleY) {
         return;
       }
-      moveTask(dragIndex, hoverIndex, item.item.type);
+      if (moveTask) {
+        moveTask(dragIndex, hoverIndex, item.item.type);
+      }
 
       item.index = hoverIndex;
     },
@@ -145,7 +147,7 @@ export default function Task({ item, index, moveTask }) {
         position: "relative",
         backgroundColor: colorTask,
         color: "#fff",
-        opacity: isDragging ? 0 : 1,
+        opacity: isDragging ? 0.3 : 1,
         overflow: "hidden",
         zIndex: 8,
       }}

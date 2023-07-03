@@ -102,16 +102,37 @@ function AppProvider({ children }) {
     const itemOldType = typeToListType(oldType);
     const itemNewType = typeToListType(item.type);
     updateData((prevData) => {
-      const existId =
-        prevData[`${itemNewType}`].length > 0 &&
-        prevData[`${itemNewType}`].filter((i) => i?.id === item.id);
-      if (!existId || existId.length < 1) {
-        prevData[`${itemNewType}`].push(item);
+      if (item.type === oldType) {
+        const cloneData = { ...prevData };
+        const itemIndex = cloneData[`${itemOldType}`].findIndex(
+          (t) => t.id === item.id
+        );
+        if (itemIndex === -1) {
+          // Item not found
+          return;
+        }
+        const updatedItem = {
+          ...cloneData[`${itemOldType}`][itemIndex],
+          title: item.title,
+          tag: item.tag,
+          description: item.description,
+          type: item.type,
+          priority: item.priority,
+        };
+        cloneData[`${itemOldType}`][itemIndex] = updatedItem;
+        return cloneData;
+      } else {
+        const listRemoved = removeTaskById(prevData[`${itemOldType}`], item.id);
+        const existId =
+          prevData[`${itemNewType}`].length > 0 &&
+          prevData[`${itemNewType}`].filter((i) => i?.id === item.id);
+        if (!existId || existId.length < 1) {
+          prevData[`${itemNewType}`].push(item);
+        }
+        prevData[`${itemOldType}`] =
+          listRemoved.length > 0 && listRemoved[0] ? listRemoved : [];
+        return { ...prevData };
       }
-      const listRemoved = removeTaskById(prevData[`${itemOldType}`], item.id);
-      prevData[`${itemOldType}`] =
-        listRemoved.length > 0 && listRemoved[0] ? listRemoved : [];
-      return { ...prevData };
     });
 
     notifySuccess("Update success");
